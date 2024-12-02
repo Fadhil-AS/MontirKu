@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class NotificationCard extends StatelessWidget {
   final String title;
-  final String time;
+  final String jenisKeluhan;
   final Widget? leadingIcon;
 
   const NotificationCard({
     required this.title,
-    required this.time,
+    required this.jenisKeluhan,
     this.leadingIcon,
   });
 
@@ -20,7 +20,7 @@ class NotificationCard extends StatelessWidget {
               backgroundImage: AssetImage('assets/images/profile.jpg'),
             ),
         title: Text(title),
-        subtitle: Text(time),
+        subtitle: Text(jenisKeluhan),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

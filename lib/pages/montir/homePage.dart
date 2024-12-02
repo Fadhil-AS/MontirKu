@@ -1,7 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:montirku/widgets/notification_card.dart';
+import 'package:montirku/pages/montir/pelangganDiterima.dart';
+import 'package:montirku/pages/montir/detailBengkel.dart';
 
-class MontirHomePage extends StatelessWidget {
+class MontirHomePage extends StatefulWidget {
+  @override
+  _MontirHomePageState createState() => _MontirHomePageState();
+}
+
+class _MontirHomePageState extends State<MontirHomePage> {
+  int _currentIndex = 0;
+
+  // Daftar halaman
+  final List<Widget> _pages = [
+    HomePageContent(),
+    Pelangganditerima(), // Halaman pelanggan diterima
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_currentIndex], // Menampilkan halaman sesuai indeks
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index == 1) {
+            // Jika tombol pelanggan ditekan, pindah ke halaman pelanggan
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Pelangganditerima()),
+            );
+          } else {
+            // Kembali ke halaman utama
+            setState(() {
+              _currentIndex = index;
+            });
+          }
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Beranda',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: 'Pelanggan',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class HomePageContent extends StatelessWidget {
   String getGreeting() {
     final hour = DateTime.now().hour;
 
@@ -100,7 +151,7 @@ class MontirHomePage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8),
-                    Text('Servis'),
+                    Text('55%'),
                   ],
                 ),
                 Column(
@@ -112,13 +163,13 @@ class MontirHomePage extends StatelessWidget {
                       ),
                       padding: EdgeInsets.all(16),
                       child: Icon(
-                        Icons.car_rental,
+                        Icons.car_crash,
                         size: 40,
                         color: Colors.black,
                       ),
                     ),
                     SizedBox(height: 8),
-                    Text('Derek'),
+                    Text('45%'),
                   ],
                 ),
               ],
@@ -139,6 +190,14 @@ class MontirHomePage extends StatelessWidget {
                 subtitle:
                     Text('Jl. Telekomunikasi No. 203\nBojongsoang, Bandung'),
                 trailing: Icon(Icons.arrow_forward_ios),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DetailBengkel(),
+                    ),
+                  );
+                },
               ),
             ),
             SizedBox(height: 16),
@@ -152,14 +211,14 @@ class MontirHomePage extends StatelessWidget {
                 children: [
                   NotificationCard(
                     title: 'Dede',
-                    time: '18:30',
+                    jenisKeluhan: 'Oli kering',
                     leadingIcon: CircleAvatar(
                       backgroundImage: AssetImage('assets/images/dede.jpg'),
                     ),
                   ),
                   NotificationCard(
                     title: 'Heru',
-                    time: '19:00',
+                    jenisKeluhan: 'Mogok',
                     leadingIcon: CircleAvatar(
                       backgroundImage: AssetImage('assets/images/heru.jpg'),
                     ),
@@ -169,19 +228,6 @@ class MontirHomePage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Beranda',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.message),
-            label: 'Obrolan',
-          ),
-        ],
       ),
     );
   }
