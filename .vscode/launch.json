@@ -1,0 +1,10 @@
+{
+    "configurations": [
+        {
+            "name": "MontirKu (Flutter)",
+            "program": "lib/main.dart",
+            "request": "launch",
+            "type": "dart"
+        }
+    ]
+}
