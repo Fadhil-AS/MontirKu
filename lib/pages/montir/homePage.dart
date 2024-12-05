@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:montirku/widgets/notification_card.dart';
 import 'package:montirku/pages/montir/pelangganDiterima.dart';
 import 'package:montirku/pages/montir/detailBengkel.dart';
+import 'package:montirku/pages/montir/profileMontir.dart';
 
 class MontirHomePage extends StatefulWidget {
   @override
@@ -78,11 +79,20 @@ class HomePageContent extends StatelessWidget {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false,
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              backgroundImage: AssetImage('assets/images/profile.jpg'),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileMontirPage()),
+                );
+              },
+              child: CircleAvatar(
+                backgroundImage: AssetImage('assets/images/profile.jpg'),
+              ),
             ),
           ),
         ],

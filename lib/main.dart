@@ -1,21 +1,20 @@
 import 'package:flutter/material.dart';
-import 'Login/landing.dart';
-// import 'package:montirku/login.dart';
-
+// import 'package:montirku/pages/montir/homePage.dart';
+import 'package:montirku/pages/login/landing.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MontirApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class MontirApp extends StatelessWidget {
+  const MontirApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Login Screen',
-      home: SplashScreen(),
+      title: 'Montir App',
+      home: const SplashScreen(),
     );
   }
 }
