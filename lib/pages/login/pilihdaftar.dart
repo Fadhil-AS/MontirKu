@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:montirku/pages/Login/daftarpelanggan.dart';
+import 'package:montirku/pages/Login/daftarMontir.dart';
+import 'package:montirku/pages/Login/daftarBengkel.dart';
 
 class PilihDaftar extends StatelessWidget {
   const PilihDaftar({Key? key}) : super(key: key);
@@ -126,7 +128,12 @@ class PilihDaftar extends StatelessWidget {
                   height: screenHeight * 0.06,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Tambahkan logika untuk daftar
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DaftarMontir(),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -144,7 +151,12 @@ class PilihDaftar extends StatelessWidget {
                   height: screenHeight * 0.06,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Tambahkan logika untuk daftar
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DaftarBengkel(),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -152,7 +164,7 @@ class PilihDaftar extends StatelessWidget {
                       ),
                       backgroundColor: Color(0xFF007EA7),
                     ),
-                    child: const Text('Daftar Pelanggan',
+                    child: const Text('Daftar Bengkel',
                         style: TextStyle(color: Colors.white, fontSize: 15)),
                   ),
                 ),

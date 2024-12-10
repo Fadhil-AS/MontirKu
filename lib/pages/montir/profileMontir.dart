@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:montirku/pages/login/landing.dart';
 import 'dart:io';
 
 class ProfileMontirPage extends StatefulWidget {
@@ -171,6 +172,24 @@ class _ProfileMontirPageState extends State<ProfileMontirPage> {
                   child: Text('Simpan'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.lightBlue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+              // SizedBox(height: 24),
+              // Tombol Simpan
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SplashScreen()),
+                    );
+                  },
+                  child: Text('Keluar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
                 ),
