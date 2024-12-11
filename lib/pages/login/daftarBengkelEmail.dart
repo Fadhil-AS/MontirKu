@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:montirku/pages/bengkel/dashboard.dart';
 
 class DaftarBengkelEmail extends StatelessWidget {
   @override
@@ -72,11 +73,12 @@ class DaftarBengkelEmail extends StatelessWidget {
                 Spacer(),
                 ElevatedButton(
                   onPressed: () {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //       builder: (context) => DaftarMontirFoto()),
-                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DashboardPage(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.lightBlue, // Warna tombol lightblue
