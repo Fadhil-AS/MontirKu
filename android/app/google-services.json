@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "209617146406",
+    "project_id": "starink-92d82",
+    "storage_bucket": "starink-92d82.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:209617146406:android:3a13b5a32fcbe21f954ce7",
+        "android_client_info": {
+          "package_name": "com.example.montirku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrm20nrvB9uJHg8cm4xeEBZwalnQZX-QU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
