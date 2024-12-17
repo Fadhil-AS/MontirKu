@@ -1,9 +1,108 @@
 import 'package:flutter/material.dart';
-import 'package:montirku/pages/login/daftarMontirEmail.dart';
+import 'package:montirku/pages/montir/homePage.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
-class DaftarMontir extends StatelessWidget {
-  final TextEditingController _dateController = TextEditingController();
+class DaftarMontir extends StatefulWidget {
+  @override
+  State<DaftarMontir> createState() => _DaftarMontirState();
+}
+
+class _DaftarMontirState extends State<DaftarMontir> {
+  final _namaLengkapController = TextEditingController();
+  final _nomorTelephoneController = TextEditingController();
+  final _alamatController = TextEditingController();
+  final _dateController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  final DatabaseReference _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL:
+        'https://starink-92d82-default-rtdb.asia-southeast1.firebasedatabase.app',
+  ).ref();
+
+  void _submitToDatabase() async {
+    FocusScope.of(context).unfocus(); // Tutup keyboard
+
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showSnackbar("Email tidak boleh kosong!");
+      return;
+    }
+
+    bool isEmailExist = await _checkEmailExist(email);
+
+    if (isEmailExist) {
+      _showSnackbar("Email sudah terdaftar!");
+    } else {
+      await _saveMontirData();
+      _showSnackbar("Pendaftaran montir berhasil!");
+    }
+  }
+
+  Future<bool> _checkEmailExist(String email) async {
+    final snapshot = await _database
+        .child('tb_users')
+        .orderByChild('email')
+        .equalTo(email)
+        .once();
+    return snapshot.snapshot.value != null;
+  }
+
+  Future<void> _saveMontirData() async {
+    try {
+      // Generate unique IDs
+      String idMontir = _database.child('tb_montir').push().key!;
+      String idUsers = _database.child('tb_users').push().key!;
+
+      // Hash the password
+      String hashedPassword = _hashPassword(_passwordController.text);
+
+      // Simpan data ke tb_montir
+      await _database.child('tb_montir').child(idMontir).set({
+        'id_montir': idMontir,
+        'nama_lengkap': _namaLengkapController.text,
+        'nomor_telephone': _nomorTelephoneController.text,
+        'alamat': _alamatController.text,
+        'tanggal_lahir': _dateController.text,
+      });
+
+      // Simpan data ke tb_users
+      await _database.child('tb_users').child(idUsers).set({
+        'id_users': idUsers,
+        'id_bengkel': null,
+        'id_montir': idMontir,
+        'id_pelanggan': null,
+        'email': _emailController.text,
+        'password': hashedPassword,
+      });
+
+      // Navigasi ke halaman sukses atau dashboard
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MontirHomePage()),
+      );
+    } catch (e) {
+      _showSnackbar("Terjadi kesalahan, coba lagi!");
+      print("Error: $e");
+    }
+  }
+
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +122,7 @@ class DaftarMontir extends StatelessWidget {
                   style: TextStyle(fontSize: 16, color: Colors.grey)),
               SizedBox(height: 16),
               TextField(
+                controller: _namaLengkapController,
                 decoration: InputDecoration(
                   labelText: 'Nama lengkap',
                   prefixIcon: Icon(Icons.supervised_user_circle_rounded),
@@ -59,6 +159,7 @@ class DaftarMontir extends StatelessWidget {
               ),
               SizedBox(height: 16),
               TextField(
+                controller: _nomorTelephoneController,
                 keyboardType: TextInputType
                     .number, // Menentukan jenis keyboard hanya angka
                 decoration: InputDecoration(
@@ -74,6 +175,18 @@ class DaftarMontir extends StatelessWidget {
               ),
               SizedBox(height: 16),
               TextField(
+                controller: _alamatController,
+                decoration: InputDecoration(
+                  labelText: 'Alamat lengkap',
+                  prefixIcon: Icon(Icons.location_on),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   labelText: 'Email',
@@ -86,6 +199,7 @@ class DaftarMontir extends StatelessWidget {
               ),
               SizedBox(height: 16),
               TextField(
+                controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Kata sandi',
                   prefixIcon: Icon(Icons.lock),
@@ -97,13 +211,7 @@ class DaftarMontir extends StatelessWidget {
               ),
               SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => DaftarMontirEmail()),
-                  );
-                },
+                onPressed: _submitToDatabase,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.lightBlue, // Warna biru muda
                   shape: RoundedRectangleBorder(
@@ -115,11 +223,7 @@ class DaftarMontir extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Selanjutnya', style: TextStyle(color: Colors.white)),
-                    Icon(
-                      Icons.arrow_forward,
-                      color: Colors.white,
-                    ),
+                    Text('Daftar', style: TextStyle(color: Colors.white)),
                   ],
                 ),
               ),
