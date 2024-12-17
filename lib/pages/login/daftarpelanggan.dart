@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 // import 'package:mindmend_ui/bottomNavbar.dart';
-import 'verifemail.dart';
+// import 'verifemail.dart';
 import 'dart:async';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 class DaftarPelanggan extends StatefulWidget {
   @override
@@ -10,9 +14,100 @@ class DaftarPelanggan extends StatefulWidget {
 
 class _DaftarPelangganState extends State<DaftarPelanggan> {
   // Boolean untuk menentukan apakah password sedang ditampilkan atau disembunyikan
+  final _namaLengkapController = TextEditingController();
+  final _nomorTelephoneController = TextEditingController();
+  final _alamatController = TextEditingController();
+  final _dateController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   bool _isPasswordVisible = false;
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+
+  final DatabaseReference _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL:
+        'https://starink-92d82-default-rtdb.asia-southeast1.firebasedatabase.app',
+  ).ref();
+
+  Future<bool> _checkEmailExist(String email) async {
+    final snapshot = await _database
+        .child('tb_users')
+        .orderByChild('email')
+        .equalTo(email)
+        .once();
+    return snapshot.snapshot.value != null;
+  }
+
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
+  Future<void> _submitPelanggan() async {
+    FocusScope.of(context).unfocus(); // Tutup keyboard
+
+    final namaLengkap = _namaLengkapController.text.trim();
+    final alamat = _alamatController.text.trim();
+    final nomorTelephone = _nomorTelephoneController.text.trim();
+    final tanggalLahir = _dateController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (namaLengkap.isEmpty ||
+        alamat.isEmpty ||
+        nomorTelephone.isEmpty ||
+        tanggalLahir.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty) {
+      _showSnackbar("Semua kolom harus diisi!");
+      return;
+    }
+
+    bool isEmailExist = await _checkEmailExist(email);
+    if (isEmailExist) {
+      _showSnackbar("Email sudah terdaftar!");
+      return;
+    }
+
+    try {
+      // Hasilkan ID unik
+      String idPelanggan = _database.child('tb_pelanggan').push().key!;
+      String idUsers = _database.child('tb_users').push().key!;
+
+      String hashedPassword = _hashPassword(password);
+
+      // Simpan data pelanggan ke tb_pelanggan
+      await _database.child('tb_pelanggan').child(idPelanggan).set({
+        'id_pelanggan': idPelanggan,
+        'nama_lengkap': namaLengkap,
+        'nomor_telephone': nomorTelephone,
+        'alamat': alamat,
+        'tanggal_lahir': tanggalLahir,
+      });
+
+      // Simpan data pengguna ke tb_users
+      await _database.child('tb_users').child(idUsers).set({
+        'id_users': idUsers,
+        'id_pelanggan': idPelanggan,
+        'id_bengkel': null,
+        'id_montir': null,
+        'email': email,
+        'password': hashedPassword,
+      });
+
+      _showSnackbar("Pendaftaran berhasil!");
+      Navigator.pop(
+          context); // Kembali ke halaman sebelumnya atau Dashboard W: HARUS DI EDIT
+    } catch (e) {
+      _showSnackbar("Terjadi kesalahan: $e");
+    }
+  }
+
+  void _showSnackbar(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   void dispose() {
@@ -73,7 +168,7 @@ class _DaftarPelangganState extends State<DaftarPelanggan> {
             Padding(
               padding: const EdgeInsets.only(left: 30.0),
               child: Text(
-                'Nama Pengguna',
+                'Nama Lengkap',
                 style: TextStyle(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w500,
@@ -85,8 +180,9 @@ class _DaftarPelangganState extends State<DaftarPelanggan> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: TextField(
+                controller: _namaLengkapController,
                 decoration: InputDecoration(
-                  hintText: 'Masukkan nama anda',
+                  hintText: 'Masukkan nama lengkap',
                   hintStyle: TextStyle(
                     color: Color(0xff797979),
                     fontSize: 15,
@@ -105,6 +201,143 @@ class _DaftarPelangganState extends State<DaftarPelanggan> {
                         color: Color(0xff4483F7), width: 2.0), // Fokus border
                   ),
                 ),
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.only(left: 30.0),
+              child: Text(
+                'Alamat lengkap',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff797979),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: TextField(
+                controller: _alamatController,
+                decoration: InputDecoration(
+                  hintText: 'Masukkan alamat lengkap',
+                  hintStyle: TextStyle(
+                    color: Color(0xff797979),
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide:
+                        BorderSide(color: Color(0xffEEEEEE)), // Default border
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                        color: Color(0xff4483F7), width: 2.0), // Fokus border
+                  ),
+                ),
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.only(left: 30.0),
+              child: Text(
+                'Nomor Telephone',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff797979),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: TextField(
+                controller: _nomorTelephoneController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Masukkan nomor telephone',
+                  hintStyle: TextStyle(
+                    color: Color(0xff797979),
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide:
+                        BorderSide(color: Color(0xffEEEEEE)), // Default border
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                        color: Color(0xff4483F7), width: 2.0), // Fokus border
+                  ),
+                ),
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+            SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.only(left: 30.0),
+              child: Text(
+                'Tanggal lahir',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff797979),
+                ),
+              ),
+            ),
+            SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: TextField(
+                controller: _dateController, // Gunakan controller untuk tanggal
+                readOnly: true,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Masukkan tanggal lahir',
+                  hintStyle: TextStyle(
+                    color: Color(0xff797979),
+                    fontSize: 15,
+                    fontWeight: FontWeight.normal,
+                  ),
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide:
+                        BorderSide(color: Color(0xffEEEEEE)), // Default border
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                        color: Color(0xff4483F7), width: 2.0), // Fokus border
+                  ),
+                ),
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(1900), // Batas awal tanggal
+                    lastDate: DateTime.now(), // Batas akhir tanggal
+                  );
+
+                  if (pickedDate != null) {
+                    // Jika pengguna memilih tanggal
+                    _dateController.text =
+                        "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+                  }
+                },
                 style: TextStyle(color: Colors.black),
               ),
             ),
@@ -226,21 +459,7 @@ class _DaftarPelangganState extends State<DaftarPelanggan> {
                 width: screenWidth,
                 height: screenHeight * 0.06,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Periksa apakah email dan password kosong
-                    if (_isEmailAndPasswordEmpty()) {
-                      // Jika kosong, tampilkan popup "Login Failed"
-                      _showLoginFailedDialog(context);
-                    } else {
-                      // Jika tidak kosong, lanjutkan login
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => VerifEmail(),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: _submitPelanggan,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xff007EA7),
                     shape: RoundedRectangleBorder(
