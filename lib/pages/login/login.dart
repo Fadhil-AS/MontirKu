@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'lupapassword.dart';
 import 'dart:async';
 import 'package:montirku/pages/montir/homePage.dart';
+import 'package:montirku/services/authService.dart';
 
 class Login extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class _LoginState extends State<Login> {
   bool _isPasswordVisible = false;
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
 
   @override
   void dispose() {
@@ -166,27 +168,27 @@ class _LoginState extends State<Login> {
               ),
             ),
             SizedBox(height: 20),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LupaPass(),
-                  ),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: Text(
-                  'Lupa Password?',
-                  style: TextStyle(
-                      color: Color(0xff007EA7),
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
+            // GestureDetector(
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (context) => LupaPass(),
+            //       ),
+            //     );
+            //   },
+            //   child: Padding(
+            //     padding: const EdgeInsets.symmetric(horizontal: 30),
+            //     child: Text(
+            //       'Lupa Password?',
+            //       style: TextStyle(
+            //           color: Color(0xff007EA7),
+            //           fontSize: 14,
+            //           fontWeight: FontWeight.normal),
+            //     ),
+            //   ),
+            // ),
+            // SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30),
               child: SizedBox(
@@ -194,13 +196,17 @@ class _LoginState extends State<Login> {
                 height: screenHeight * 0.06,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Periksa apakah email dan password kosong
-                    if (_isEmailAndPasswordEmpty()) {
-                      // Jika kosong, tampilkan popup "Login Failed"
+                    String email = _emailController.text.trim();
+                    String password = _passwordController.text.trim();
+
+                    if (email.isEmpty || password.isEmpty) {
                       _showLoginFailedDialog(context);
                     } else {
-                      // Jika tidak kosong, lanjutkan login
-                      _login();
+                      _authService.loginUser(
+                        context: context,
+                        email: email,
+                        password: password,
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -234,65 +240,65 @@ class _LoginState extends State<Login> {
                     color: Color(0xffECECEC),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Text(
-                    'Atau',
-                    style: TextStyle(color: Color(0xff797979)),
-                  ),
-                ),
-                Expanded(
-                  child: Divider(
-                    color: Color(0xffECECEC),
-                  ),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                //   child: Text(
+                //     'Atau',
+                //     style: TextStyle(color: Color(0xff797979)),
+                //   ),
+                // ),
+                // Expanded(
+                //   child: Divider(
+                //     color: Color(0xffECECEC),
+                //   ),
+                // ),
               ],
             ),
-            SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 30),
-              child: SizedBox(
-                width: screenWidth,
-                height: screenHeight * 0.06,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Aksi yang akan dijalankan saat tombol "Login" ditekan
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.0),
-                      side: BorderSide(color: Color(0xffEEEEEE), width: 1),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.g_translate,
-                          color: Colors.black,
-                        ), // Icon Google
-                        SizedBox(width: 8), // Spasi antara icon dan teks
-                        Padding(
-                          padding: const EdgeInsets.only(left: 50.0),
-                          child: Text(
-                            'Continue with Google',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // SizedBox(height: 30),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 30),
+            //   child: SizedBox(
+            //     width: screenWidth,
+            //     height: screenHeight * 0.06,
+            //     child: ElevatedButton(
+            //       onPressed: () {
+            //         // Aksi yang akan dijalankan saat tombol "Login" ditekan
+            //       },
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: Colors.white,
+            //         shape: RoundedRectangleBorder(
+            //           borderRadius: BorderRadius.circular(16.0),
+            //           side: BorderSide(color: Color(0xffEEEEEE), width: 1),
+            //         ),
+            //         elevation: 0,
+            //       ),
+            //       child: Container(
+            //         width: double.infinity,
+            //         padding: EdgeInsets.symmetric(vertical: 0),
+            //         child: Row(
+            //           mainAxisAlignment: MainAxisAlignment.start,
+            //           children: [
+            //             Icon(
+            //               Icons.g_translate,
+            //               color: Colors.black,
+            //             ), // Icon Google
+            //             SizedBox(width: 8), // Spasi antara icon dan teks
+            //             Padding(
+            //               padding: const EdgeInsets.only(left: 50.0),
+            //               child: Text(
+            //                 'Continue with Google',
+            //                 style: TextStyle(
+            //                     color: Colors.black,
+            //                     fontSize: 16,
+            //                     fontWeight: FontWeight.normal),
+            //               ),
+            //             ),
+            //           ],
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),
