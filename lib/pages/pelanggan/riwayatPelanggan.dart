@@ -5,7 +5,12 @@ class RiwayatPelanggan extends StatefulWidget {
   _RiwayatPelangganState createState() => _RiwayatPelangganState();
 }
 
+<<<<<<< Updated upstream
 class _RiwayatPelangganState extends State<RiwayatPelanggan> with SingleTickerProviderStateMixin {
+=======
+class _RiwayatPelangganState extends State<RiwayatPelanggan>
+    with SingleTickerProviderStateMixin {
+>>>>>>> Stashed changes
   late TabController _tabController;
 
   @override
@@ -50,13 +55,23 @@ class _RiwayatPelangganState extends State<RiwayatPelanggan> with SingleTickerPr
                   borderRadius: BorderRadius.circular(20), // Radius bulat
                 ),
                 indicatorPadding: const EdgeInsets.symmetric(
+<<<<<<< Updated upstream
                   horizontal: -40, // Ukuran horizontal untuk mengatur lebar warna biru
+=======
+                  horizontal:
+                      -40, // Ukuran horizontal untuk mengatur lebar warna biru
+>>>>>>> Stashed changes
                 ),
                 labelPadding: const EdgeInsets.symmetric(
                   horizontal: 4, // Padding untuk jarak teks
                 ),
                 labelColor: Colors.white, // Warna teks untuk tab aktif
+<<<<<<< Updated upstream
                 unselectedLabelColor: Colors.black, // Warna teks untuk tab tidak aktif
+=======
+                unselectedLabelColor:
+                    Colors.black, // Warna teks untuk tab tidak aktif
+>>>>>>> Stashed changes
                 tabs: const [
                   Tab(text: "Servis"),
                   Tab(text: "Derek"),
@@ -131,7 +146,12 @@ class _RiwayatPelangganState extends State<RiwayatPelanggan> with SingleTickerPr
     );
   }
 
+<<<<<<< Updated upstream
   Widget _buildHistoryCard({required String title, required String subtitle, required Color color}) {
+=======
+  Widget _buildHistoryCard(
+      {required String title, required String subtitle, required Color color}) {
+>>>>>>> Stashed changes
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
