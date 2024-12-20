@@ -1,22 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 class RiwayatPelanggan extends StatefulWidget {
+  final String idPelanggan;
+
+  const RiwayatPelanggan({required this.idPelanggan, Key? key})
+      : super(key: key);
+
   @override
   _RiwayatPelangganState createState() => _RiwayatPelangganState();
 }
 
-<<<<<<< Updated upstream
-class _RiwayatPelangganState extends State<RiwayatPelanggan> with SingleTickerProviderStateMixin {
-=======
 class _RiwayatPelangganState extends State<RiwayatPelanggan>
     with SingleTickerProviderStateMixin {
->>>>>>> Stashed changes
   late TabController _tabController;
+
+  final DatabaseReference _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL:
+        'https://starink-92d82-default-rtdb.asia-southeast1.firebasedatabase.app',
+  ).ref();
+
+  List<Map<String, dynamic>> servisRiwayat = [];
+  List<Map<String, dynamic>> derekRiwayat = [];
+  List<Map<String, dynamic>> belanjaRiwayat = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+  }
+
+  Future<void> _fetchRiwayatData() async {
+    try {
+      // Ambil data perbaikan untuk "Servis" dan "Derek"
+      final snapshot = await _database
+          .child('tb_perbaikan')
+          .orderByChild('id_pelanggan')
+          .equalTo(widget.idPelanggan)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.value as Map;
+
+        final List<Map<String, dynamic>> tempServis = [];
+        final List<Map<String, dynamic>> tempDerek = [];
+
+        data.forEach((key, value) {
+          final perbaikan = value as Map<String, dynamic>;
+          if (perbaikan['id_kendaraan'] != null) {
+            tempServis.add(perbaikan);
+          } else if (perbaikan['id_derek'] != null) {
+            tempDerek.add(perbaikan);
+          }
+        });
+
+        setState(() {
+          servisRiwayat = tempServis;
+          derekRiwayat = tempDerek;
+        });
+      }
+
+      // Ambil data "Belanja" jika ada
+      final belanjaSnapshot = await _database
+          .child('tb_belanja')
+          .orderByChild('id_pelanggan')
+          .equalTo(widget.idPelanggan)
+          .get();
+
+      if (belanjaSnapshot.exists) {
+        final data = belanjaSnapshot.value as Map;
+        final List<Map<String, dynamic>> tempBelanja = [];
+
+        data.forEach((key, value) {
+          tempBelanja.add(value as Map<String, dynamic>);
+        });
+
+        setState(() {
+          belanjaRiwayat = tempBelanja;
+        });
+      }
+    } catch (e) {
+      print("Error fetching riwayat data: $e");
+    }
   }
 
   @override
@@ -55,23 +122,15 @@ class _RiwayatPelangganState extends State<RiwayatPelanggan>
                   borderRadius: BorderRadius.circular(20), // Radius bulat
                 ),
                 indicatorPadding: const EdgeInsets.symmetric(
-<<<<<<< Updated upstream
-                  horizontal: -40, // Ukuran horizontal untuk mengatur lebar warna biru
-=======
                   horizontal:
                       -40, // Ukuran horizontal untuk mengatur lebar warna biru
->>>>>>> Stashed changes
                 ),
                 labelPadding: const EdgeInsets.symmetric(
                   horizontal: 4, // Padding untuk jarak teks
                 ),
                 labelColor: Colors.white, // Warna teks untuk tab aktif
-<<<<<<< Updated upstream
-                unselectedLabelColor: Colors.black, // Warna teks untuk tab tidak aktif
-=======
                 unselectedLabelColor:
                     Colors.black, // Warna teks untuk tab tidak aktif
->>>>>>> Stashed changes
                 tabs: const [
                   Tab(text: "Servis"),
                   Tab(text: "Derek"),
@@ -86,11 +145,9 @@ class _RiwayatPelangganState extends State<RiwayatPelanggan>
                 controller: _tabController,
                 children: [
                   // Servis Tab
-                  _buildHistoryList(),
-                  // Derek Tab
-                  Center(child: Text("Riwayat Derek kosong.")),
-                  // Belanja Tab
-                  Center(child: Text("Riwayat Belanja kosong.")),
+                   _buildHistoryList(servisRiwayat, "Servis kendaraan"),
+                  _buildHistoryList(derekRiwayat, "Derek kendaraan"),
+                  _buildHistoryList(belanjaRiwayat, "Belanja pelanggan"),
                 ],
               ),
             ),
@@ -100,59 +157,34 @@ class _RiwayatPelangganState extends State<RiwayatPelanggan>
     );
   }
 
-  Widget _buildHistoryList() {
-    return ListView(
-      children: [
-        // Grouped by Date
-        const Text(
-          "11 Nov 2022",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  Widget _buildHistoryList(List<Map<String, dynamic>> riwayat, String title) {
+    if (riwayat.isEmpty) {
+      return Center(
+        child: Text(
+          "Belum ada riwayat $title.",
+          style: TextStyle(color: Colors.grey, fontSize: 16),
         ),
-        const SizedBox(height: 8),
-        _buildHistoryCard(
-          title: "Servis kendaraan",
-          subtitle: "11 Nov 2022 · Sedang di servis",
-          color: Colors.yellow,
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          "05 Nov 2022",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        _buildHistoryCard(
-          title: "Servis kendaraan",
-          subtitle: "5 Nov 2022 · Servis dibatalkan",
-          color: Colors.red,
-        ),
-        const SizedBox(height: 8),
-        _buildHistoryCard(
-          title: "Servis kendaraan",
-          subtitle: "5 Nov 2022 · Servis berhasil",
-          color: Colors.green,
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          "03 Nov 2022",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        _buildHistoryCard(
-          title: "Servis kendaraan",
-          subtitle: "3 Nov 2022 · Servis berhasil",
-          color: Colors.green,
-        ),
-      ],
+      );
+    }
+
+    return ListView.builder(
+      itemCount: riwayat.length,
+      itemBuilder: (context, index) {
+        final item = riwayat[index];
+        return _buildHistoryCard(
+          title: title,
+          subtitle:
+              "${item['alamat_perbaikan'] ?? 'Alamat tidak tersedia'} · ${item['keluhan'] ?? 'Keluhan tidak tersedia'}",
+          color: Colors.blue,
+        );
+      },
     );
   }
 
-<<<<<<< Updated upstream
-  Widget _buildHistoryCard({required String title, required String subtitle, required Color color}) {
-=======
   Widget _buildHistoryCard(
       {required String title, required String subtitle, required Color color}) {
->>>>>>> Stashed changes
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,

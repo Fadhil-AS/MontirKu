@@ -58,7 +58,10 @@ class AuthService {
       } else if (userData['id_pelanggan'] != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => BerandaPelanggan()),
+          MaterialPageRoute(
+              builder: (context) => BerandaPelanggan(
+                    idPelanggan: userData['id_pelanggan'],
+                  )),
         );
       } else {
         _showDialog(context, "Login Gagal", "Akun tidak memiliki peran.");

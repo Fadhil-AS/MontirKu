@@ -193,29 +193,17 @@ class _DaftarBengkelState extends State<DaftarBengkel> {
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _submitToDatabase,
-                // onPressed: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (context) => DaftarBengkelEmail()),
-                //   );
-                // },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.lightBlue, // Warna biru muda
+                  backgroundColor: Colors.lightBlue,
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(12), // Radius sudut tombol
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16), // Padding tombol
+                  padding: EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Selanjutnya', style: TextStyle(color: Colors.white)),
-                    Icon(
-                      Icons.arrow_forward,
-                      color: Colors.white,
-                    ),
+                    Text('Daftar', style: TextStyle(color: Colors.white)),
                   ],
                 ),
               ),

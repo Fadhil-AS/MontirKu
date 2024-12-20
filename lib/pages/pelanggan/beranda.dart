@@ -3,14 +3,155 @@ import 'package:montirku/pages/pelanggan/riwayatPelanggan.dart';
 import 'package:montirku/pages/pelanggan/serviceathomepage.dart';
 import 'package:montirku/pages/pelanggan/serviceatworkshop.dart';
 import 'package:montirku/pages/pelanggan/belanjaPelanggan.dart';
+import 'package:montirku/pages/pelanggan/pelangganProfile.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'dart:io';
 
 class BerandaPelanggan extends StatefulWidget {
+  final String idPelanggan;
+
+  const BerandaPelanggan({required this.idPelanggan, Key? key})
+      : super(key: key);
   @override
   _BerandaPelangganState createState() => _BerandaPelangganState();
 }
 
 class _BerandaPelangganState extends State<BerandaPelanggan> {
   int _currentIndex = 0;
+  String? namaPelanggan;
+  String? namaFileGambar;
+  String? namaKendaraan;
+  File? _selectedImage;
+  String? _savedImagePath;
+
+  List<Map<String, dynamic>> riwayatPerbaikan = [];
+
+  final DatabaseReference _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL:
+        'https://starink-92d82-default-rtdb.asia-southeast1.firebasedatabase.app',
+  ).ref();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPelangganData();
+    _fetchGambarData();
+    _fetchKendaraanData();
+    _fetchRiwayatPerbaikan();
+  }
+
+  Future<void> _fetchPelangganData() async {
+    try {
+      final pelangganSnapshot =
+          await _database.child('tb_pelanggan/${widget.idPelanggan}').get();
+
+      if (pelangganSnapshot.exists) {
+        final pelangganData = pelangganSnapshot.value as Map;
+        setState(() {
+          namaPelanggan = pelangganData['nama_lengkap'];
+        });
+      } else {
+        setState(() {
+          namaPelanggan = "Pelanggan";
+        });
+      }
+    } catch (e) {
+      print("Error fetching pelanggan data: $e");
+    }
+  }
+
+  Future<void> _fetchGambarData() async {
+    try {
+      final gambarSnapshot = await _database
+          .child('tb_gambar')
+          .orderByChild('id_pelanggan')
+          .equalTo(widget.idPelanggan)
+          .get();
+
+      if (gambarSnapshot.exists) {
+        final gambarData = gambarSnapshot.value as Map;
+        final gambar = gambarData.values.first as Map;
+
+        setState(() {
+          namaFileGambar = gambar['nama_file'];
+        });
+      } else {
+        setState(() {
+          namaFileGambar = "default_profile.jpg";
+        });
+      }
+    } catch (e) {
+      print("Error fetching gambar data: $e");
+      setState(() {
+        namaFileGambar = "default_profile.jpg";
+      });
+    }
+  }
+
+  Future<void> _fetchKendaraanData() async {
+    try {
+      // Query data kendaraan berdasarkan id_pelanggan
+      final snapshot = await _database
+          .child('tb_kendaraan')
+          .orderByChild('id_pelanggan')
+          .equalTo(widget.idPelanggan)
+          .get();
+
+      if (snapshot.exists) {
+        final kendaraanData = snapshot.value as Map;
+        final kendaraan = kendaraanData.values.first as Map;
+
+        setState(() {
+          namaKendaraan = kendaraan['nama_kendaraan']; // Nama kendaraan
+        });
+      } else {
+        setState(() {
+          namaKendaraan =
+              "Kendaraan Tidak Ditemukan"; // Default jika tidak ada kendaraan
+        });
+      }
+    } catch (e) {
+      print("Error fetching kendaraan data: $e");
+      setState(() {
+        namaKendaraan = "Kendaraan Tidak Ditemukan";
+      });
+    }
+  }
+
+  Future<void> _fetchRiwayatPerbaikan() async {
+    try {
+      // Query data perbaikan berdasarkan id_pelanggan
+      final snapshot = await _database
+          .child('tb_perbaikan')
+          .orderByChild('id_pelanggan')
+          .equalTo(widget.idPelanggan)
+          .get();
+
+      if (snapshot.exists) {
+        final data = snapshot.value as Map;
+        final List<Map<String, dynamic>> tempRiwayat = [];
+
+        data.forEach((key, value) {
+          tempRiwayat.add(value as Map<String, dynamic>);
+        });
+
+        setState(() {
+          riwayatPerbaikan = tempRiwayat; // Simpan riwayat ke state
+        });
+      } else {
+        setState(() {
+          riwayatPerbaikan = []; // Kosongkan jika tidak ada data
+        });
+      }
+    } catch (e) {
+      print("Error fetching riwayat perbaikan: $e");
+      setState(() {
+        riwayatPerbaikan = [];
+      });
+    }
+  }
 
   String getGreeting() {
     final hour = DateTime.now().hour;
@@ -27,6 +168,39 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
     }
   }
 
+  Widget _buildRiwayatPerbaikan() {
+    if (riwayatPerbaikan.isEmpty) {
+      return Center(
+        child: Text(
+          "Belum ada riwayat perbaikan",
+          style: TextStyle(color: Colors.grey, fontSize: 16),
+        ),
+      );
+    }
+
+    return Column(
+      children: riwayatPerbaikan.map((perbaikan) {
+        String status = perbaikan['status'] ?? 'Tidak diketahui';
+        Color statusColor;
+
+        // Tentukan warna berdasarkan status
+        if (status == 'Sedang di servis') {
+          statusColor = Colors.yellow;
+        } else if (status == 'Servis dibatalkan') {
+          statusColor = Colors.red;
+        } else {
+          statusColor = Colors.green;
+        }
+
+        return _buildHistoryCard(
+          "Servis kendaraan", // Judul
+          "${perbaikan['alamat_perbaikan']} · $status", // Subjudul
+          statusColor, // Warna status
+        );
+      }).toList(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,14 +213,14 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
-                  'Selamat Siang, ',
+                  '${getGreeting()}, ',
                   style: TextStyle(color: Colors.black, fontSize: 14),
                 ),
                 Text(
-                  "Fadhil",
-                  style: TextStyle(
+                  namaPelanggan != null ? namaPelanggan! : "Loading...",
+                  style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -56,32 +230,63 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
             ),
             Row(
               children: [
-                Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none,
-                          color: Colors.black),
-                      onPressed: () {},
-                    ),
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                // Stack(
+                //   children: [
+                //     IconButton(
+                //       icon: const Icon(Icons.notifications_none,
+                //           color: Colors.black),
+                //       onPressed: () {},
+                //     ),
+                //     Positioned(
+                //       right: 8,
+                //       top: 8,
+                //       child: Container(
+                //         width: 10,
+                //         height: 10,
+                //         decoration: BoxDecoration(
+                //           color: Colors.red,
+                //           shape: BoxShape.circle,
+                //         ),
+                //       ),
+                //     ),
+                //   ],
+                // ),
                 const SizedBox(width: 10),
                 CircleAvatar(
+                  key: ValueKey(
+                    _selectedImage != null
+                        ? _selectedImage!.path
+                        : _savedImagePath ?? namaFileGambar,
+                  ),
                   radius: 20,
-                  backgroundImage: AssetImage(
-                      'assets/images/pelanggan/profile_pelanggan.jpg'),
+                  backgroundImage: _selectedImage != null
+                      ? FileImage(_selectedImage!)
+                      : _savedImagePath != null
+                          ? FileImage(File(_savedImagePath!))
+                          : AssetImage(
+                                  'assets/images/pelanggan/${namaFileGambar ?? "default_profile.jpg"}')
+                              as ImageProvider,
+                  child: GestureDetector(
+                    onTap: () async {
+                      // Navigasi ke halaman profil
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              PelangganProfile(idPelanggan: widget.idPelanggan),
+                        ),
+                      );
+
+                      // Periksa apakah ada perubahan data gambar
+                      if (result != null && result is String) {
+                        setState(() {
+                          _savedImagePath = result; // Perbarui path gambar
+                          _selectedImage =
+                              File(result); // Simpan gambar sebagai File
+                        });
+                      }
+                    },
+                  ),
                 ),
               ],
             ),
@@ -106,9 +311,9 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          "MOTOR",
+                          "Motor",
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
@@ -116,7 +321,7 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          "X-ride 125",
+                          namaKendaraan ?? "Belum terdaftar",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -241,7 +446,8 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => RiwayatPelanggan(),
+                          builder: (context) =>
+                              RiwayatPelanggan(idPelanggan: widget.idPelanggan),
                         ),
                       );
                     },
@@ -267,23 +473,7 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildHistoryCard(
-                "Servis kendaraan",
-                "7 Nov 2022 · Sedang di servis",
-                Colors.yellow,
-              ),
-              const SizedBox(height: 8),
-              _buildHistoryCard(
-                "Servis kendaraan",
-                "5 Nov 2022 · Servis dibatalkan",
-                Colors.red,
-              ),
-              const SizedBox(height: 8),
-              _buildHistoryCard(
-                "Servis kendaraan",
-                "2 Nov 2022 · Servis berhasil",
-                Colors.green,
-              ),
+              _buildRiwayatPerbaikan(),
             ],
           ),
         ),

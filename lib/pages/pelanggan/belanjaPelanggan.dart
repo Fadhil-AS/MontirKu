@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-<<<<<<< Updated upstream
-import 'package:montirku/Pelanggan/keranjangPelanggan.dart';
-=======
 import 'package:montirku/pages/pelanggan/keranjangPelanggan.dart';
->>>>>>> Stashed changes
 
 class BelanjaPelanggan extends StatefulWidget {
   @override
@@ -65,7 +61,7 @@ class _BelanjaPelangganState extends State<BelanjaPelanggan> {
                       borderRadius: BorderRadius.circular(12),
                       image: const DecorationImage(
                         image:
-                            NetworkImage('https://via.placeholder.com/400x150'),
+                            AssetImage('assets/images/bengkel/ban-supra.jpg'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -158,7 +154,8 @@ class _BelanjaPelangganState extends State<BelanjaPelanggan> {
                 child: Row(
                   children: [
                     _buildProductCard(
-                      image: 'https://via.placeholder.com/100',
+                      image:
+                          'https://images.unsplash.com/photo-1696685747241-5f243fb9e76f?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                       name: "CVT Yamaha X-ride",
                       price: "Rp1.000.000",
                       discount: "50%",
@@ -166,8 +163,9 @@ class _BelanjaPelangganState extends State<BelanjaPelanggan> {
                     ),
                     const SizedBox(width: 16),
                     _buildProductCard(
-                      image: 'https://via.placeholder.com/100',
-                      name: "Ban Michelin Pilot",
+                      image:
+                          'https://images.unsplash.com/photo-1584706948924-46f0773225df?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+                      name: "Ban Hankook",
                       price: "Rp480.000",
                       discount: "20%",
                       category: "Untuk motor",
@@ -196,18 +194,11 @@ class _BelanjaPelangganState extends State<BelanjaPelanggan> {
                 child: Row(
                   children: [
                     _buildProductCard(
-                      image: 'https://via.placeholder.com/100',
+                      image:
+                          'https://images.unsplash.com/photo-1613214293055-5678e2f6d7de?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
                       name: "Oli Castrol",
                       price: "Rp120.000",
                       discount: "10%",
-                      category: "Untuk motor",
-                    ),
-                    const SizedBox(width: 16),
-                    _buildProductCard(
-                      image: 'https://via.placeholder.com/100',
-                      name: "Aki GS Astra",
-                      price: "Rp550.000",
-                      discount: "15%",
                       category: "Untuk motor",
                     ),
                   ],

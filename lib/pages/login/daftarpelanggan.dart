@@ -6,6 +6,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
+import 'package:montirku/pages/login/login.dart';
 
 class DaftarPelanggan extends StatefulWidget {
   @override
@@ -97,8 +98,17 @@ class _DaftarPelangganState extends State<DaftarPelanggan> {
       });
 
       _showSnackbar("Pendaftaran berhasil!");
-      Navigator.pop(
-          context); // Kembali ke halaman sebelumnya atau Dashboard W: HARUS DI EDIT
+      // Navigator.pushReplacement(
+      //   context,
+      //   MaterialPageRoute(
+      //       builder: (context) => BerandaPelanggan(
+      //             idPelanggan: idPelanggan,
+      //           )),
+      // ); // Kembali ke halaman sebelumnya atau Dashboard W: HARUS DI EDIT
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+      );
     } catch (e) {
       _showSnackbar("Terjadi kesalahan: $e");
     }
