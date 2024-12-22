@@ -3,40 +3,148 @@ import 'package:montirku/widgets/notification_card.dart';
 import 'package:montirku/pages/montir/pelangganDiterima.dart';
 import 'package:montirku/pages/montir/detailBengkel.dart';
 import 'package:montirku/pages/montir/profileMontir.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:io';
 
 class MontirHomePage extends StatefulWidget {
+  final String idMontir;
+
+  const MontirHomePage({required this.idMontir, Key? key}) : super(key: key);
   @override
   _MontirHomePageState createState() => _MontirHomePageState();
 }
 
 class _MontirHomePageState extends State<MontirHomePage> {
   int _currentIndex = 0;
+  String? namaMontir;
+  List<Map<String, dynamic>> perbaikanList = [];
+
+  final DatabaseReference _database = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL:
+        'https://starink-92d82-default-rtdb.asia-southeast1.firebasedatabase.app',
+  ).ref();
 
   // Daftar halaman
-  final List<Widget> _pages = [
-    HomePageContent(),
-    Pelangganditerima(), // Halaman pelanggan diterima
-  ];
+  // final List<Widget> _pages = [
+  //   HomePageContent(),
+  //   Pelangganditerima(), // Halaman pelanggan diterima
+  // ];
+  List<Widget> _pages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    print("MontirHomePage initState - ID Montir: ${widget.idMontir}");
+    _fetchMontirData();
+    _fetchPerbaikanData();
+  }
+
+  Future<void> _fetchMontirData() async {
+    try {
+      print("Fetching data for ID Montir: ${widget.idMontir}");
+      final montirSnapshot =
+          await _database.child('tb_montir').child(widget.idMontir).get();
+
+      if (montirSnapshot.exists) {
+        final montirData = montirSnapshot.value as Map<dynamic, dynamic>;
+        print("Data Montir: $montirData");
+
+        // Pastikan nama lengkap tersedia
+        setState(() {
+          namaMontir = montirData['nama_lengkap'] ?? 'Nama Tidak Diketahui';
+          _pages = [
+            HomePageContent(
+              idMontir: widget.idMontir,
+              namaMontir: namaMontir,
+              perbaikanList:
+                  perbaikanList, // Data perbaikan diupdate setelah _fetchPerbaikanData
+            ),
+            Pelangganditerima(
+              idMontir: widget.idMontir,
+            ),
+          ];
+        });
+      } else {
+        print("Montir tidak ditemukan");
+        setState(() {
+          _pages = [
+            Center(
+              child: Text("Montir tidak ditemukan"),
+            ),
+            Pelangganditerima(
+              idMontir: widget.idMontir,
+            ),
+          ];
+        });
+      }
+    } catch (e) {
+      print("Error fetching montir data: $e");
+      setState(() {
+        _pages = [
+          Center(
+            child: Text("Terjadi kesalahan saat mengambil data."),
+          ),
+          Pelangganditerima(
+            idMontir: widget.idMontir,
+          ),
+        ];
+      });
+    }
+  }
+
+  Future<void> _fetchPerbaikanData() async {
+    try {
+      final perbaikanSnapshot = await _database
+          .child('tb_perbaikan')
+          .orderByChild('id_montir')
+          .equalTo(widget.idMontir)
+          .get();
+
+      if (perbaikanSnapshot.exists) {
+        final data = (perbaikanSnapshot.value as Map<dynamic, dynamic>)
+            .cast<String, dynamic>();
+        final List<Map<String, dynamic>> fetchedData =
+            data.entries.map((entry) {
+          return {
+            "idPerbaikan": entry.key,
+            ...entry.value as Map<String, dynamic>,
+          };
+        }).toList();
+
+        setState(() {
+          perbaikanList = fetchedData;
+        });
+      } else {
+        setState(() {
+          perbaikanList = [];
+        });
+      }
+    } catch (e) {
+      print("Error fetching perbaikan data: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    print("Building MontirHomePage - Current Index: $_currentIndex");
+    print("Pages Available: $_pages");
+
     return Scaffold(
-      body: _pages[_currentIndex], // Menampilkan halaman sesuai indeks
+      body: _pages.isEmpty
+          ? Center(
+              child: CircularProgressIndicator(), // Halaman loading
+            )
+          : _pages[_currentIndex], // Menampilkan halaman jika data sudah siap
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          if (index == 1) {
-            // Jika tombol pelanggan ditekan, pindah ke halaman pelanggan
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => Pelangganditerima()),
-            );
-          } else {
-            // Kembali ke halaman utama
-            setState(() {
-              _currentIndex = index;
-            });
-          }
+          setState(() {
+            _currentIndex = index;
+            print("Bottom Navigation Changed - Current Index: $_currentIndex");
+          });
         },
         items: [
           BottomNavigationBarItem(
@@ -53,7 +161,55 @@ class _MontirHomePageState extends State<MontirHomePage> {
   }
 }
 
-class HomePageContent extends StatelessWidget {
+class HomePageContent extends StatefulWidget {
+  final String idMontir;
+  final String? namaMontir; // Tambahkan variabel untuk nama montir
+  final List<Map<String, dynamic>> perbaikanList;
+
+  const HomePageContent({
+    required this.idMontir,
+    this.namaMontir,
+    this.perbaikanList = const [],
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<HomePageContent> createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<HomePageContent> {
+  File? _profileImage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileImage(); // Panggil fungsi untuk memuat path gambar
+  }
+
+  Future<void> _loadProfileImage() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? imagePath = prefs.getString('profile_image_path');
+
+      if (imagePath != null && File(imagePath).existsSync()) {
+        setState(() {
+          _profileImage = File(imagePath);
+        });
+      } else {
+        print('Path gambar tidak ditemukan, menggunakan default.');
+      }
+    } catch (e) {
+      print('Terjadi kesalahan saat memuat path gambar: $e');
+    }
+  }
+
+  double calculatePercentage(List<Map<String, dynamic>> list, String category) {
+    if (list.isEmpty) return 0.0;
+    final total = list.length;
+    final count = list.where((item) => item['kategori'] == category).length;
+    return (count / total) * 100;
+  }
+
   String getGreeting() {
     final hour = DateTime.now().hour;
 
@@ -71,10 +227,14 @@ class HomePageContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("Rendering HomePageContent - Nama Montir: ${widget.namaMontir}");
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${getGreeting()},\nFadhil',
+          widget.namaMontir != null
+              ? '${getGreeting()}, \n${widget.namaMontir}'
+              : 'Sedang memuat...',
           style: TextStyle(color: Colors.black, fontSize: 18),
         ),
         backgroundColor: Colors.white,
@@ -87,11 +247,20 @@ class HomePageContent extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfileMontirPage()),
-                );
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ProfileMontirPage(idMontir: widget.idMontir),
+                  ),
+                ).then((_) {
+                  // Muat ulang gambar profil setelah kembali dari halaman profil
+                  _loadProfileImage();
+                });
               },
               child: CircleAvatar(
-                backgroundImage: AssetImage('assets/images/profile.jpg'),
+                backgroundImage: _profileImage != null
+                    ? FileImage(_profileImage!) // Gambar dari path lokal
+                    : AssetImage('assets/images/montir/default_profile.jpg')
+                        as ImageProvider, // Default gambar jika tidak ada gambar lokal
               ),
             ),
           ),
@@ -121,7 +290,7 @@ class HomePageContent extends StatelessWidget {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Rp 5,000,000',
+                          'Rp 0',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -161,7 +330,8 @@ class HomePageContent extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8),
-                    Text('55%'),
+                    Text(
+                        '${calculatePercentage(widget.perbaikanList, 'Servis').toStringAsFixed(1)}%'),
                   ],
                 ),
                 Column(
@@ -179,7 +349,8 @@ class HomePageContent extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8),
-                    Text('45%'),
+                    Text(
+                        '${calculatePercentage(widget.perbaikanList, 'derek').toStringAsFixed(1)}%'),
                   ],
                 ),
               ],
@@ -217,24 +388,23 @@ class HomePageContent extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Expanded(
-              child: ListView(
-                children: [
-                  NotificationCard(
-                    title: 'Dede',
-                    jenisKeluhan: 'Oli kering',
-                    leadingIcon: CircleAvatar(
-                      backgroundImage: AssetImage('assets/images/dede.jpg'),
+              child: widget.perbaikanList.isEmpty
+                  ? Center(child: Text("Tidak ada perbaikan yang ditemukan"))
+                  : ListView.builder(
+                      itemCount: widget.perbaikanList.length,
+                      itemBuilder: (context, index) {
+                        final perbaikan = widget.perbaikanList[index];
+                        return NotificationCard(
+                          title: perbaikan['id_pelanggan'] ??
+                              'Pelanggan Tidak Diketahui',
+                          jenisKeluhan:
+                              perbaikan['keluhan'] ?? 'Keluhan Tidak Diketahui',
+                          leadingIcon: CircleAvatar(
+                            child: Text(perbaikan['id_pelanggan']?[0] ?? '?'),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                  NotificationCard(
-                    title: 'Heru',
-                    jenisKeluhan: 'Mogok',
-                    leadingIcon: CircleAvatar(
-                      backgroundImage: AssetImage('assets/images/heru.jpg'),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

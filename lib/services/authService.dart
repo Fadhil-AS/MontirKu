@@ -51,10 +51,23 @@ class AuthService {
           MaterialPageRoute(builder: (context) => DashboardPage()),
         );
       } else if (userData['id_montir'] != null) {
+        print(
+            "Navigasi ke MontirHomePage dengan ID Montir: ${userData['id_montir']}");
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MontirHomePage()),
-        );
+          MaterialPageRoute(
+            builder: (context) {
+              print(
+                  "Navigating to MontirHomePage with ID: ${userData['id_montir']}");
+              return MontirHomePage(idMontir: userData['id_montir']);
+            },
+          ),
+        ).then((_) {
+          print("Navigation to MontirHomePage completed.");
+        }).catchError((e) {
+          print("Error during navigation: $e");
+        });
+        print("Navigasi selesai");
       } else if (userData['id_pelanggan'] != null) {
         Navigator.pushReplacement(
           context,

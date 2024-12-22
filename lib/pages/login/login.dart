@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 // import 'package:mindmend_ui/bottomNavbar.dart';
 import 'lupapassword.dart';
 import 'dart:async';
-import 'package:montirku/pages/montir/homePage.dart';
 import 'package:montirku/services/authService.dart';
 
 class Login extends StatefulWidget {
@@ -202,11 +201,15 @@ class _LoginState extends State<Login> {
                     if (email.isEmpty || password.isEmpty) {
                       _showLoginFailedDialog(context);
                     } else {
-                      _authService.loginUser(
+                      _authService
+                          .loginUser(
                         context: context,
                         email: email,
                         password: password,
-                      );
+                      )
+                          .catchError((e) {
+                        print("Error during loginUser: $e");
+                      });
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -312,14 +315,15 @@ class _LoginState extends State<Login> {
   }
 
   // Fungsi untuk melakukan login
-  void _login() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MontirHomePage(),
-      ),
-    );
-  }
+  // void _login() {
+  //   String idMontir = await _authService.getLoggedInMontirId();
+  //   Navigator.pushReplacement(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => MontirHomePage(idMontir: idMontir),
+  //     ),
+  //   );
+  // }
 
   // Fungsi untuk menampilkan popup "Login Failed"
   Future<void> _showLoginFailedDialog(BuildContext context) async {

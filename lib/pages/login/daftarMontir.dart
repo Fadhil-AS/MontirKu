@@ -84,7 +84,7 @@ class _DaftarMontirState extends State<DaftarMontir> {
       // Navigasi ke halaman sukses atau dashboard
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MontirHomePage()),
+        MaterialPageRoute(builder: (context) => MontirHomePage(idMontir: idMontir,)),
       );
     } catch (e) {
       _showSnackbar("Terjadi kesalahan, coba lagi!");

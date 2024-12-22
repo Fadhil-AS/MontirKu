@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'daftarprofil.dart';
 
 class VerifEmail extends StatelessWidget {
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
@@ -140,14 +139,14 @@ class VerifEmail extends StatelessWidget {
                   height: screenHeight * 0.06,
                   child: ElevatedButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DaftarProfil(),
-                        ),
-                      );
-                      String code = _controllers.map((c) => c.text).join();
-                      print("Kode verifikasi: $code");
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => DaftarProfil(),
+                      //   ),
+                      // );
+                      // String code = _controllers.map((c) => c.text).join();
+                      // print("Kode verifikasi: $code");
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xff007EA7),
