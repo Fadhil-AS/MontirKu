@@ -19,7 +19,18 @@ class MontirHomePage extends StatefulWidget {
 class _MontirHomePageState extends State<MontirHomePage> {
   int _currentIndex = 0;
   String? namaMontir;
-  List<Map<String, dynamic>> perbaikanList = [];
+  List<Map<String, dynamic>> perbaikanList = [
+    {
+      'title': 'Dede',
+      'jenisKeluhan': 'Oli kering',
+      'image': 'assets/images/dede.jpg',
+    },
+    {
+      'title': 'Heru',
+      'jenisKeluhan': 'Mogok',
+      'image': 'assets/images/heru.jpg',
+    },
+  ];
 
   final DatabaseReference _database = FirebaseDatabase.instanceFor(
     app: Firebase.app(),
@@ -52,19 +63,18 @@ class _MontirHomePageState extends State<MontirHomePage> {
         final montirData = montirSnapshot.value as Map<dynamic, dynamic>;
         print("Data Montir: $montirData");
 
-        // Pastikan nama lengkap tersedia
         setState(() {
           namaMontir = montirData['nama_lengkap'] ?? 'Nama Tidak Diketahui';
           _pages = [
             HomePageContent(
               idMontir: widget.idMontir,
               namaMontir: namaMontir,
-              perbaikanList:
-                  perbaikanList, // Data perbaikan diupdate setelah _fetchPerbaikanData
+              perbaikanList: perbaikanList,
+              onReject: removeCard,
             ),
             Pelangganditerima(
-              idMontir: widget.idMontir,
-            ),
+                // idMontir: widget.idMontir,
+                ),
           ];
         });
       } else {
@@ -75,8 +85,8 @@ class _MontirHomePageState extends State<MontirHomePage> {
               child: Text("Montir tidak ditemukan"),
             ),
             Pelangganditerima(
-              idMontir: widget.idMontir,
-            ),
+                // idMontir: widget.idMontir,
+                ),
           ];
         });
       }
@@ -88,8 +98,8 @@ class _MontirHomePageState extends State<MontirHomePage> {
             child: Text("Terjadi kesalahan saat mengambil data."),
           ),
           Pelangganditerima(
-            idMontir: widget.idMontir,
-          ),
+              // idMontir: widget.idMontir,
+              ),
         ];
       });
     }
@@ -104,6 +114,7 @@ class _MontirHomePageState extends State<MontirHomePage> {
           .get();
 
       if (perbaikanSnapshot.exists) {
+        print("Data ditemukan: ${perbaikanSnapshot.value}");
         final data = (perbaikanSnapshot.value as Map<dynamic, dynamic>)
             .cast<String, dynamic>();
         final List<Map<String, dynamic>> fetchedData =
@@ -118,6 +129,8 @@ class _MontirHomePageState extends State<MontirHomePage> {
           perbaikanList = fetchedData;
         });
       } else {
+        print(
+            "Tidak ada perbaikan ditemukan untuk id_montir: ${widget.idMontir}");
         setState(() {
           perbaikanList = [];
         });
@@ -125,6 +138,12 @@ class _MontirHomePageState extends State<MontirHomePage> {
     } catch (e) {
       print("Error fetching perbaikan data: $e");
     }
+  }
+
+  void removeCard(int index) {
+    setState(() {
+      perbaikanList.removeAt(index);
+    });
   }
 
   @override
@@ -135,9 +154,9 @@ class _MontirHomePageState extends State<MontirHomePage> {
     return Scaffold(
       body: _pages.isEmpty
           ? Center(
-              child: CircularProgressIndicator(), // Halaman loading
+              child: CircularProgressIndicator(),
             )
-          : _pages[_currentIndex], // Menampilkan halaman jika data sudah siap
+          : _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -163,13 +182,15 @@ class _MontirHomePageState extends State<MontirHomePage> {
 
 class HomePageContent extends StatefulWidget {
   final String idMontir;
-  final String? namaMontir; // Tambahkan variabel untuk nama montir
+  final String? namaMontir;
   final List<Map<String, dynamic>> perbaikanList;
+  final void Function(int index) onReject;
 
   const HomePageContent({
     required this.idMontir,
     this.namaMontir,
-    this.perbaikanList = const [],
+    required this.perbaikanList,
+    required this.onReject,
     Key? key,
   }) : super(key: key);
 
@@ -183,7 +204,7 @@ class _HomePageContentState extends State<HomePageContent> {
   @override
   void initState() {
     super.initState();
-    _loadProfileImage(); // Panggil fungsi untuk memuat path gambar
+    _loadProfileImage();
   }
 
   Future<void> _loadProfileImage() async {
@@ -252,15 +273,14 @@ class _HomePageContentState extends State<HomePageContent> {
                         ProfileMontirPage(idMontir: widget.idMontir),
                   ),
                 ).then((_) {
-                  // Muat ulang gambar profil setelah kembali dari halaman profil
                   _loadProfileImage();
                 });
               },
               child: CircleAvatar(
                 backgroundImage: _profileImage != null
-                    ? FileImage(_profileImage!) // Gambar dari path lokal
+                    ? FileImage(_profileImage!)
                     : AssetImage('assets/images/montir/default_profile.jpg')
-                        as ImageProvider, // Default gambar jika tidak ada gambar lokal
+                        as ImageProvider,
               ),
             ),
           ),
@@ -389,18 +409,16 @@ class _HomePageContentState extends State<HomePageContent> {
             SizedBox(height: 8),
             Expanded(
               child: widget.perbaikanList.isEmpty
-                  ? Center(child: Text("Tidak ada perbaikan yang ditemukan"))
+                  ? Center(child: Text("Tidak ada data pelanggan"))
                   : ListView.builder(
                       itemCount: widget.perbaikanList.length,
                       itemBuilder: (context, index) {
                         final perbaikan = widget.perbaikanList[index];
                         return NotificationCard(
-                          title: perbaikan['id_pelanggan'] ??
-                              'Pelanggan Tidak Diketahui',
-                          jenisKeluhan:
-                              perbaikan['keluhan'] ?? 'Keluhan Tidak Diketahui',
+                          title: perbaikan['title'],
+                          jenisKeluhan: perbaikan['jenisKeluhan'],
                           leadingIcon: CircleAvatar(
-                            child: Text(perbaikan['id_pelanggan']?[0] ?? '?'),
+                            backgroundImage: AssetImage(perbaikan['image']),
                           ),
                         );
                       },

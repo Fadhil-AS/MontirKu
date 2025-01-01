@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:montirku/pages/pelanggan/belanjaPelanggan.dart';
 
 class KeranjangPelanggan extends StatefulWidget {
+  final String idPelanggan; // Tambahkan parameter idPelanggan
+
+  const KeranjangPelanggan({required this.idPelanggan, Key? key})
+      : super(key: key);
+
   @override
   _KeranjangPelangganState createState() => _KeranjangPelangganState();
 }
@@ -12,13 +17,20 @@ class _KeranjangPelangganState extends State<KeranjangPelanggan> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => BelanjaPelanggan(
+                        idPelanggan: widget.idPelanggan,
+                      )),
+            );
           },
         ),
         title: const Text(
@@ -50,6 +62,7 @@ class _KeranjangPelangganState extends State<KeranjangPelanggan> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
         currentIndex: 1, // Keranjang sebagai tab aktif
         onTap: (index) {
           setState(() {
@@ -61,14 +74,20 @@ class _KeranjangPelangganState extends State<KeranjangPelanggan> {
             case 0:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BelanjaPelanggan()),
+                MaterialPageRoute(
+                    builder: (context) => BelanjaPelanggan(
+                          idPelanggan: widget.idPelanggan,
+                        )),
               );
               print("Navigasi ke halaman Eksplor");
               break;
             case 1:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => KeranjangPelanggan()),
+                MaterialPageRoute(
+                    builder: (context) => KeranjangPelanggan(
+                          idPelanggan: widget.idPelanggan,
+                        )),
               );
               print("Navigasi ke halaman Keranjang");
               break;
@@ -82,7 +101,7 @@ class _KeranjangPelangganState extends State<KeranjangPelanggan> {
               break;
           }
         },
-        selectedItemColor: Colors.blue,
+        selectedItemColor: Color(0xFF007EA7),
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(

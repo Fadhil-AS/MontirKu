@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:montirku/pages/pelanggan/keranjangPelanggan.dart';
+import 'package:montirku/pages/pelanggan/beranda.dart';
 
 class BelanjaPelanggan extends StatefulWidget {
+  final String idPelanggan; // Tambahkan parameter idPelanggan
+
+  const BelanjaPelanggan({required this.idPelanggan, Key? key})
+      : super(key: key);
+
   @override
   _BelanjaPelangganState createState() => _BelanjaPelangganState();
 }
@@ -13,17 +19,23 @@ class _BelanjaPelangganState extends State<BelanjaPelanggan> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.lightBlue,
         elevation: 1,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => BerandaPelanggan(
+                        idPelanggan: widget.idPelanggan,
+                      )),
+            );
           },
         ),
         title: const Text(
           "Belanja",
-          style: TextStyle(color: Colors.black),
+          style: TextStyle(color: Colors.white),
         ),
         // actions: [
         //   IconButton(
@@ -222,14 +234,20 @@ class _BelanjaPelangganState extends State<BelanjaPelanggan> {
             case 0:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => BelanjaPelanggan()),
+                MaterialPageRoute(
+                    builder: (context) => BelanjaPelanggan(
+                          idPelanggan: widget.idPelanggan,
+                        )),
               );
               print("Navigasi ke halaman Eksplor");
               break;
             case 1:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => KeranjangPelanggan()),
+                MaterialPageRoute(
+                    builder: (context) => KeranjangPelanggan(
+                          idPelanggan: widget.idPelanggan,
+                        )),
               );
               print("Navigasi ke halaman Keranjang");
               break;

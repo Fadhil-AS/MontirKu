@@ -1,62 +1,147 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
 
-class ServiceAtWorkshopPage extends StatelessWidget {
+class ServiceAtWorkshopPage extends StatefulWidget {
+  @override
+  _ServiceAtWorkshopPageState createState() => _ServiceAtWorkshopPageState();
+}
+
+class _ServiceAtWorkshopPageState extends State<ServiceAtWorkshopPage> {
+  LatLng _currentLocation = LatLng(-6.9175, 107.6191); // Default: Bandung
+  bool _locationLoaded = false;
+  LatLng? _selectedWorkshop;
+
+  final List<LatLng> _workshops = [
+    LatLng(-6.974324, 107.629115), // Bengkel Ajwa
+    LatLng(-6.975435, 107.633245), // Tambal Ban Sukapura
+    LatLng(-6.979642, 107.636872), // Bengkel Jaya Motor
+  ];
+
+  final List<String> _workshopNames = [
+    "Bengkel Ajwa",
+    "Tambal Ban Sukapura",
+    "Bengkel Jaya Motor",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  Future<void> requestLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.deniedForever) {
+        print("Izin lokasi ditolak secara permanen.");
+      }
+    }
+
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      print("Izin lokasi diberikan.");
+    } else {
+      print("Izin lokasi tidak diberikan.");
+    }
+  }
+
+  Future<void> _getUserLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _currentLocation = LatLng(position.latitude, position.longitude);
+        _locationLoaded = true;
+      });
+    } catch (e) {
+      print("Error getting location: $e");
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(color: Colors.black),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Servis di Bengkel',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(title: Text("Pilih Bengkel")),
+      body: Stack(
         children: [
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  color: Colors.grey[200],
-                  child: Center(
-                    child: Text('Maps bengkel terdekat'),
+          FlutterMap(
+            options: MapOptions(
+              initialCenter: _currentLocation,
+              initialZoom: 15,
+              onTap: (tapPosition, point) {
+                setState(() {
+                  _selectedWorkshop = null; // Reset pilihan saat peta diklik
+                });
+              },
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.montirku',
+                // subdomains: ['a', 'b', 'c'],
+              ),
+            ],
+          ),
+          if (_selectedWorkshop != null) ...[
+            Positioned(
+              bottom: 80,
+              left: 20,
+              right: 20,
+              child: Card(
+                elevation: 5,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        "Bengkel yang Dipilih:",
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        _workshopNames[_workshops.indexOf(_selectedWorkshop!)],
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ],
                   ),
                 ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Card(
-                    margin: EdgeInsets.all(16.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          title: Text('Bengkel Ajwa'),
-                          subtitle: Text('Jl. Telekomunikasi No. 203, Bandung'),
-                          trailing: Icon(Icons.arrow_forward_ios),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          title: Text('Tambal Ban Sukapura'),
-                          subtitle: Text('Jl. Sukapura No. 69, Bandung'),
-                          trailing: Icon(Icons.arrow_forward_ios),
-                          onTap: () {},
-                        ),
-                        ListTile(
-                          title: Text('Bengkel Jaya Motor'),
-                          subtitle: Text('Jl. Raya Bojongsoang No. 50, Bandung'),
-                          trailing: Icon(Icons.arrow_forward_ios),
-                          onTap: () {},
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
+            ),
+          ],
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: ElevatedButton(
+              onPressed: _selectedWorkshop == null
+                  ? null
+                  : () {
+                      print(
+                          "Konfirmasi reservasi di: ${_workshopNames[_workshops.indexOf(_selectedWorkshop!)]}");
+                      // Navigasi atau tindakan konfirmasi
+                    },
+              child: Text("Konfirmasi Lokasi"),
             ),
           ),
         ],

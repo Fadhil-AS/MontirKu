@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'derekpage.dart';
 import 'serviceathomepage.dart';
 import 'serviceatworkshop.dart';
 
@@ -189,6 +190,15 @@ class HomePage extends StatelessWidget {
                   return _buildServicePopup(context);
                 },
               );
+            } else if (label == 'Derek') {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      TowPage(), // Halaman untuk layanan derek
+                ),
+              );
             }
           },
           child: CircleAvatar(
@@ -210,7 +220,7 @@ class HomePage extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'Pilih layanan kamu inginkan',
+            'Pilih layanan yang kamu inginkan',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           SizedBox(height: 16),

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:montirku/pages/pelanggan/servicedetails.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:montirku/pages/pelanggan/detailservicepage.dart';
 
 class ServiceAtHomePage extends StatefulWidget {
   @override
@@ -7,70 +10,85 @@ class ServiceAtHomePage extends StatefulWidget {
 }
 
 class _ServiceAtHomePageState extends State<ServiceAtHomePage> {
-  final TextEditingController _addressController = TextEditingController();
+  LatLng _currentLocation = LatLng(-6.9175, 107.6191); // Default: Bandung
+  bool _locationLoaded = false;
 
   @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  Future<void> _getUserLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Cek apakah layanan lokasi diaktifkan
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Jika layanan lokasi tidak aktif
+      return;
+    }
+
+    // Minta izin lokasi
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Jika izin lokasi ditolak
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Jika izin lokasi ditolak secara permanen
+      return;
+    }
+
+    // Ambil lokasi saat ini
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _locationLoaded = true;
+    });
+  }
+
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: BackButton(color: Colors.black),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Servis di Rumah',
-          style: TextStyle(color: Colors.black),
-        ),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: AppBar(title: Text("Pilih Lokasi")),
+      body: Stack(
         children: [
-          Expanded(
-            child: Stack(
-              children: [
-                Container(
-                  color: Colors.grey[200],
-                  child: Center(
-                    child: Text('Maps User'),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Card(
-                    margin: EdgeInsets.all(16.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          TextField(
-                            controller: _addressController,
-                            decoration: InputDecoration(
-                              labelText: 'Alamat Lengkap',
-                              hintText: 'Masukkan alamat lengkap Anda',
-                              border: OutlineInputBorder(),
-                            ),
-                          ),
-                          SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ServiceDetailsPage(),
-                                ),
-                              );
-                            },
-                            child: Text('Konfirmasi Alamat'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+          FlutterMap(
+            options: MapOptions(
+              initialCenter: _currentLocation,
+              initialZoom: 15,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate:
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                subdomains: ['a', 'b', 'c'],
+              ),
+             
+            ],
+          ),
+          Positioned(
+            bottom: 20,
+            left: 20,
+            right: 20,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => DetailServicePage()), // Arahkan ke halaman detail service
+                );
+              },
+              child: Text("Konfirmasi Lokasi"),
             ),
           ),
         ],

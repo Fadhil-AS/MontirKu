@@ -104,10 +104,18 @@ class _PelangganProfileState extends State<PelangganProfile> {
           _selectedImage = File(savedPath);
         });
       } else {
+        // Jika path tidak valid atau tidak ditemukan
+        setState(() {
+          _savedImagePath = 'assets/images/pelanggan/default_profile.jpg';
+          _selectedImage = null; // Tetap null agar default digunakan
+        });
         print("Saved image path does not exist or is null.");
       }
     } catch (e) {
       print("Error loading saved image path: $e");
+      setState(() {
+        _savedImagePath = 'assets/images/pelanggan/default_profile.jpg';
+      });
     }
   }
 
@@ -232,11 +240,7 @@ class _PelangganProfileState extends State<PelangganProfile> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(
-              context,
-              _selectedImage != null
-                  ? _selectedImage!.path // Kirim path gambar terbaru
-                  : _savedImagePath ??
-                      namaFileGambar, // Jika tidak ada perubahan, kirim gambar default
+              context, // Jika tidak ada perubahan, kirim gambar default
             );
           },
         ),
@@ -256,12 +260,15 @@ class _PelangganProfileState extends State<PelangganProfile> {
                             radius: 60,
                             backgroundImage: _selectedImage != null
                                 ? FileImage(_selectedImage!)
-                                : _savedImagePath != null
-                                    ? FileImage(File(
-                                        _savedImagePath!)) // Menampilkan gambar dari galeri
+                                : (_savedImagePath != null &&
+                                        File(_savedImagePath!).existsSync())
+                                    ? FileImage(File(_savedImagePath!))
                                     : AssetImage(
-                                            'assets/images/pelanggan/${namaFileGambar ?? "default_profile.jpg"}')
+                                            'assets/images/pelanggan/default_profile.jpg')
                                         as ImageProvider,
+                            child: GestureDetector(
+                              onTap: _pickImage,
+                            ),
                           ),
                           Positioned(
                             bottom: 0,

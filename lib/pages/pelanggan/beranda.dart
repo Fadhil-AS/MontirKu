@@ -74,9 +74,18 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
         final gambarData = gambarSnapshot.value as Map;
         final gambar = gambarData.values.first as Map;
 
-        setState(() {
-          namaFileGambar = gambar['nama_file'];
-        });
+        final String fileName = gambar['nama_file'];
+        final String filePath = 'assets/images/pelanggan/$fileName';
+
+        if (File(filePath).existsSync()) {
+          setState(() {
+            namaFileGambar = fileName;
+          });
+        } else {
+          setState(() {
+            namaFileGambar = "default_profile.jpg";
+          });
+        }
       } else {
         setState(() {
           namaFileGambar = "default_profile.jpg";
@@ -109,13 +118,13 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
       } else {
         setState(() {
           namaKendaraan =
-              "Kendaraan Tidak Ditemukan"; // Default jika tidak ada kendaraan
+              "Kendaraan belum terdaftar"; // Default jika tidak ada kendaraan
         });
       }
     } catch (e) {
       print("Error fetching kendaraan data: $e");
       setState(() {
-        namaKendaraan = "Kendaraan Tidak Ditemukan";
+        namaKendaraan = "Kendaraan belum terdaftar";
       });
     }
   }
@@ -261,14 +270,14 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
                   radius: 20,
                   backgroundImage: _selectedImage != null
                       ? FileImage(_selectedImage!)
-                      : _savedImagePath != null
+                      : (_savedImagePath != null &&
+                              File(_savedImagePath!).existsSync())
                           ? FileImage(File(_savedImagePath!))
                           : AssetImage(
                                   'assets/images/pelanggan/${namaFileGambar ?? "default_profile.jpg"}')
                               as ImageProvider,
                   child: GestureDetector(
                     onTap: () async {
-                      // Navigasi ke halaman profil
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -277,12 +286,10 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
                         ),
                       );
 
-                      // Periksa apakah ada perubahan data gambar
                       if (result != null && result is String) {
                         setState(() {
-                          _savedImagePath = result; // Perbarui path gambar
-                          _selectedImage =
-                              File(result); // Simpan gambar sebagai File
+                          _savedImagePath = result;
+                          _selectedImage = File(result);
                         });
                       }
                     },
@@ -347,7 +354,9 @@ class _BerandaPelangganState extends State<BerandaPelanggan> {
                   _buildServiceButton(
                     "Belanja",
                     Icons.shopping_cart,
-                    targetPage: BelanjaPelanggan(),
+                    targetPage: BelanjaPelanggan(
+                      idPelanggan: widget.idPelanggan,
+                    ),
                   ),
                   _buildServiceButton("Derek", Icons.local_shipping),
                 ],
